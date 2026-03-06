@@ -46,6 +46,9 @@ import org.apache.cordova.CordovaResourceApi;
 
 public class FileOpener2 extends CordovaPlugin {
 
+	private static final int FOR_FILE_OPENER_2 = 14261;
+	private CallbackContext callbackContext;
+
 	/**
 	 * Executes the request and returns a boolean.
 	 *
@@ -135,13 +138,17 @@ public class FileOpener2 extends CordovaPlugin {
 				 * http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
 				 */
 				 if(openWithDefault){
-					 cordova.getActivity().startActivity(intent);
+					//cordova.getActivity().startActivity(intent);
+					this.cordova.startActivityForResult(this, intent, FOR_FILE_OPENER_2);
 				 }
 				 else{
-					 cordova.getActivity().startActivity(Intent.createChooser(intent, "Open File in..."));
+					//cordova.getActivity().startActivity(Intent.createChooser(intent, "Open File in..."));
+					Intent chooser = Intent.createChooser(intent, "Open File in...");
+    				this.cordova.startActivityForResult(this, chooser, FOR_FILE_OPENER_2);
 				 }
 
-				callbackContext.success();
+				//callbackContext.success();
+				this.callbackContext = callbackContext; 
 			} catch (android.content.ActivityNotFoundException e) {
 				JSONObject errorObj = new JSONObject();
 				errorObj.put("status", PluginResult.Status.ERROR.ordinal());
@@ -194,6 +201,18 @@ public class FileOpener2 extends CordovaPlugin {
         }
         return appInstalled;
 	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		super.onActivityResult(requestCode, resultCode, intent);
+		
+		if (requestCode == FOR_FILE_OPENER_2) {
+			if (this.callbackContext != null) {
+				this.callbackContext.success();
+				this.callbackContext = null; // Limpa a referência
+			}
+		}
+}
 
 }
 
